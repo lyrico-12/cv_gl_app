@@ -7,9 +7,8 @@ import mediapipe as mp
 
 WIN_W, WIN_H = 960, 540
 
-EAR_CLOSE_THRESH = 0.37
+EAR_CLOSE_THRESH = 0.40
 EAR_OPEN_THRESH = 0.45
-BLINK_REFRACTORY_S = 0.6
 
 MAR_OPEN_THRESH = 0.26
 MAR_CLOSE_THRESH = 0.20
@@ -20,8 +19,7 @@ mp_style = mp.solutions.drawing_styles
 
 @dataclass
 class BlinkState:
-    was_closed: bool = False
-    last_blink_time_s: float = 0.0
+    is_closed: bool = False
 
 @dataclass
 class MouthState:
@@ -59,31 +57,25 @@ def mar_from_landmarks(pts: np.ndarray, idxs: list) -> float:
     return vert / horiz
 
 def update_blink_state_from_ear(ear: float, blink: BlinkState) -> bool:
-    now = time.time()
-    blink_event = False
-    
-    is_closed = ear < EAR_CLOSE_THRESH
-
-    is_open = ear > EAR_OPEN_THRESH
-
-    if blink.was_closed and is_open and (now - blink.last_blink_time_s > BLINK_REFRACTORY_S):
-        blink_event = True
-        blink.last_blink_time_s = now
-
-    blink.was_closed = is_closed
-    return blink_event
-
-def update_mouth_state_from_mar(mar: float, mouth: MouthState) -> bool:
     event = False
-    if not mouth.is_open and mar > MAR_OPEN_THRESH:
-        mouth.is_open = True
+    if not blink.is_closed and ear < EAR_CLOSE_THRESH:
+        blink.is_closed = True
         event = True
-
-    elif mouth.is_open and mar < MAR_CLOSE_THRESH:
-        mouth.is_open = False
+    
+    elif blink.is_closed and ear > EAR_OPEN_THRESH:
+        blink.is_closed = False
     return event
 
-def draw_overlays(frame, ear, mar, blink_cd, face_landmarks=None, mesh=None):
+def update_mouth_state_from_mar(mar: float, mouth: MouthState) -> bool:
+    """
+    口が開いている間ずっと True を返す（連続出力）。
+    ヒステリシスは使わない。
+    """
+    is_open_now = mar > MAR_OPEN_THRESH
+    mouth.is_open = is_open_now  # 状態は更新だけしておく
+    return is_open_now  
+
+def draw_overlays(frame, ear, mar, face_landmarks=None, mesh=None):
     h, w = frame.shape[:2]
     if face_landmarks is not None and mesh is not None:
         mp_draw.draw_landmarks(
@@ -94,8 +86,6 @@ def draw_overlays(frame, ear, mar, blink_cd, face_landmarks=None, mesh=None):
         )
     cv2.putText(frame, f"EAR:{ear:.2f}  MAR:{mar:.2f}", (16, 36),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2, cv2.LINE_AA)
-    cv2.putText(frame, f"Blink CD: {max(0.0, blink_cd):.1f}s", (16, 68),
-                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (80,220,255), 2, cv2.LINE_AA)
 
 def process_frame_facemesh(frame, mesh, blink: BlinkState, mouth: MouthState):
     """
@@ -133,9 +123,7 @@ def process_frame_facemesh(frame, mesh, blink: BlinkState, mouth: MouthState):
         blink_event = update_blink_state_from_ear(ear, blink)
         mouth_event = update_mouth_state_from_mar(mar, mouth)
 
-    # 可視化
-    blink_cd = BLINK_REFRACTORY_S - (time.time() - blink.last_blink_time_s)
-    draw_overlays(frame, ear, mar, blink_cd, face_lms_draw, mp_mesh)
+    draw_overlays(frame, ear, mar, face_lms_draw, mp_mesh)
 
     return frame, blink_event, mouth_event
 
