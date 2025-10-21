@@ -1,7 +1,7 @@
 # obstacles.py
 import cv2
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List
 from config import WIN_W, WIN_H, SCROLL_SPEED, PIPE_WIDTH, PIPE_GAP_H, PIPE_GAP_MIN_Y, PIPE_GAP_MAX_Y, PLAYER_X, RADIUS
 
@@ -13,6 +13,40 @@ def circle_rect_collision(cx, cy, r, rx, ry, rw, rh) -> bool:
     dy = cy - nearest_y
     return (dx*dx + dy*dy) <= (r*r)
 
+
+def _clamp(v, lo, hi):
+    return max(lo, min(hi, v))
+
+def _shift_color(bgr, db=0, dg=0, dr=0):
+    # BGR各チャンネルをシフトしてクリップ
+    b, g, r = bgr
+    return (_clamp(b+db, 0, 255), _clamp(g+dg, 0, 255), _clamp(r+dr, 0, 255))
+
+def _draw_vertical_cylinder(frame, x, y0, y1, w, base, outline, line_aa=cv2.LINE_AA):
+    """
+    y0〜y1の縦パイプ胴体を描く（円筒っぽい2トーン＋ハイライト帯＋外周線）
+    """
+    x0, x1 = int(x), int(x + w)
+    y0, y1 = int(y0), int(y1)
+    if y1 <= y0: 
+        return
+
+    # 胴体ベース
+    cv2.rectangle(frame, (x0, y0), (x1, y1), base, -1)
+
+    # 右側を少し暗めにして円筒陰影
+    dark = _shift_color(base, db=-20, dg=-40, dr=-20)
+    cv2.rectangle(frame, (x0 + int(w*0.65), y0), (x1, y1), dark, -1)
+
+    # 左側に細いハイライト帯
+    light = _shift_color(base, db=+30, dg=+55, dr=+30)
+    hl_x0 = x0 + int(w*0.08)
+    hl_x1 = x0 + int(w*0.16)
+    cv2.rectangle(frame, (hl_x0, y0), (hl_x1, y1), light, -1)
+
+    # 外周アウトライン
+    cv2.rectangle(frame, (x0, y0), (x1, y1), outline, 2, lineType=line_aa)
+
 @dataclass
 class Pipe:
     x: float
@@ -21,6 +55,14 @@ class Pipe:
     gap_h: int = PIPE_GAP_H
     passed: bool = False
 
+    # 見た目の個体差（明度少しランダム）
+    def _colors(self):
+        base = (60, 180, 60)    # BGR
+        outline = (40, 120, 40)
+        jitter = 0
+        base = _shift_color(base, dg=jitter, db=jitter//2, dr=jitter//3)
+        return base, outline
+
     def update(self, dt: float):
         self.x -= SCROLL_SPEED * dt
 
@@ -28,15 +70,17 @@ class Pipe:
         return self.x + self.w < 0
 
     def draw(self, frame):
-        # 上パイプ
+        base, outline = self._colors()
         top_h = int(self.gap_y - self.gap_h/2)
-        cv2.rectangle(frame, (int(self.x), 0), (int(self.x + self.w), top_h), (60, 180, 60), -1)
-        # 下パイプ
         bot_y = int(self.gap_y + self.gap_h/2)
-        cv2.rectangle(frame, (int(self.x), bot_y), (int(self.x + self.w), WIN_H), (60, 180, 60), -1)
-        # ふち
-        cv2.rectangle(frame, (int(self.x), 0), (int(self.x + self.w), top_h), (40,120,40), 3)
-        cv2.rectangle(frame, (int(self.x), bot_y), (int(self.x + self.w), WIN_H), (40,120,40), 3)
+
+        # --- 上パイプ（上からギャップまで） ---
+        if top_h > 0:
+            _draw_vertical_cylinder(frame, self.x, 0, top_h, self.w, base, outline)
+
+        # --- 下パイプ（ギャップから下端まで） ---
+        if bot_y < WIN_H:
+            _draw_vertical_cylinder(frame, self.x, bot_y, WIN_H, self.w, base, outline)
 
     def collide_circle(self, cx: int, cy: int, r: int) -> bool:
         top_rect = (int(self.x), 0, self.w, int(self.gap_y - self.gap_h/2))
