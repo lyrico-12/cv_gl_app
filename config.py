@@ -5,7 +5,7 @@ WIN_W, WIN_H = 960, 540
 GRAVITY = 500.0     # 下向き加速度 [px/s^2]
 THRUST  = 600.0     # 口開き中の上向き加速度 [px/s^2]
 DT_CLAMP = 1/30.0
-RADIUS  = 18
+RADIUS  = 25
 PLAYER_X = int(WIN_W * 0.25)
 
 # スクロール/障害物

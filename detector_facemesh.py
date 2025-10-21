@@ -54,8 +54,8 @@ class FaceInputDetector:
                 connection_drawing_spec=mp_style.get_default_face_mesh_tesselation_style()
             )
 
-        cv2.putText(frame, f"MAR:{mar:.2f}", (16, 36),
-                    cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,255), 2, cv2.LINE_AA)
+        # cv2.putText(frame, f"MAR:{mar:.2f}", (16, 36),
+        #             cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255,255,255), 2, cv2.LINE_AA)
         self.mouth.is_open = mouth_open
         return frame, mouth_open, mar
 

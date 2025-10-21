@@ -3,6 +3,7 @@ import cv2, time
 from config import *
 from detector_facemesh import FaceInputDetector
 from obstacles import spawn_pipe, update_pipes, check_score_and_collision
+from bird_anim import BirdAnimator, overlay_image_alpha
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -11,6 +12,7 @@ def main():
         return
 
     detector = FaceInputDetector(draw_mesh=False)
+    bird = BirdAnimator()
 
     y = WIN_H * 0.5
     vy = 0.0
@@ -72,19 +74,30 @@ def main():
                 for p in pipes:
                     p.draw(vis)
 
-            if now < invincible_until and lives > 0:
-                flicker = int(now * 10) % 2 ==0
-                color = (0, 170, 255) if flicker else (180, 180, 180)
-            else:
-                color = (0, 170, 255)
+            # if now < invincible_until and lives > 0:
+            #     flicker = int(now * 10) % 2 ==0
+            #     color = (0, 170, 255) if flicker else (180, 180, 180)
+            # else:
+            #     color = (0, 170, 255)
 
-            # プレイヤー描画
-            cv2.circle(vis, (PLAYER_X, int(y)), RADIUS, color, -1, cv2.LINE_AA)
+            # # プレイヤー描画
+            # cv2.circle(vis, (PLAYER_X, int(y)), RADIUS, color, -1, cv2.LINE_AA)
+
+            flicker_on = True
+
+            if is_invincible and lives > 0:
+                flicker_on = (int(now * 10) % 2 ==0)
+
+            if flicker_on:
+                bird_img = bird.get_frame() if lives > 0 else bird.get_frame(alive=False)
+                x = PLAYER_X - bird_img.shape[1] // 2 - 20
+                y_top = int(y) - bird_img.shape[0] // 2 - 20
+                vis = overlay_image_alpha(vis, bird_img, x, y_top)
 
             # スコア
-            cv2.putText(vis, f"Score: {score}", (16, 68),
+            cv2.putText(vis, f"Score: {score}", (16, 36),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
-            cv2.putText(vis, f"Lived: {lives}", (16, 100),
+            cv2.putText(vis, f"Lives: {lives}", (16, 68),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
             
             if is_invincible and lives > 0:
