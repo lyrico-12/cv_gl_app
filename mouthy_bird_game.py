@@ -4,6 +4,17 @@ from config import *
 from detector_facemesh import FaceInputDetector
 from obstacles import spawn_pipe, update_pipes, check_score_and_collision
 from bird_anim import BirdAnimator, overlay_image_alpha
+from life_gauge import LifeGauge
+
+def draw_life_gauge(vis, ratio: float, lives: int):
+    x, y, w, h = 16, 100, 180, 14
+    cv2.rectangle(vis, (x, y), (x+w, y+h), (60, 60, 60), 2, cv2.LINE_AA)
+    fill_w = int(w * max(0.0, min(1.0, ratio)))
+    cv2.rectangle(vis, (x+1, y+1), (x+1+fill_w, y+h-1), (90, 230, 90), -1, cv2.LINE_AA)
+    cv2.putText(vis, f"Lives: {lives}", (x, y-8),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
+    cv2.putText(vis, "Heal", (x+w+8, y+h-2),
+                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 255, 180), 1, cv2.LINE_AA)
 
 def main():
     cap = cv2.VideoCapture(0)
@@ -13,6 +24,7 @@ def main():
 
     detector = FaceInputDetector(draw_mesh=False)
     bird = BirdAnimator()
+    life_gauge = LifeGauge()
 
     y = WIN_H * 0.5
     vy = 0.0
@@ -29,7 +41,7 @@ def main():
             if not ok:
                 break
 
-            vis, mouth_open, mar = detector.process(frame)
+            vis, mouth_open, eyes_closed, mar, ear = detector.process(frame)
 
             now = time.time()
             dt = min(now - last_t, DT_CLAMP)
@@ -65,6 +77,10 @@ def main():
                     lives -= 1
                     invincible_until = now + INVINCIBLE_S
 
+                gained = life_gauge.update(eyes_closed=eyes_closed, dt=dt, lives=lives)
+                if gained > 0:
+                    lives = min(LIFE_MAX, lives + gained)
+
             else:
                 # ゲームオーバー表示
                 cv2.putText(vis, "GAME OVER", (WIN_W//2 - 150, WIN_H//2 - 20),
@@ -97,8 +113,7 @@ def main():
             # スコア
             cv2.putText(vis, f"Score: {score}", (16, 36),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
-            cv2.putText(vis, f"Lives: {lives}", (16, 68),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (255,255,255), 2)
+            draw_life_gauge(vis, life_gauge.fill_ratio(), lives)
             
             if is_invincible and lives > 0:
                 cv2.putText(vis, f"Invincible: {invincible_until - now:.1f}s",
