@@ -63,9 +63,6 @@ class Pipe:
         base = _shift_color(base, dg=jitter, db=jitter//2, dr=jitter//3)
         return base, outline
 
-    def update(self, dt: float):
-        self.x -= SCROLL_SPEED * dt
-
     def offscreen(self) -> bool:
         return self.x + self.w < 0
 
@@ -91,12 +88,13 @@ class Pipe:
         if rh > 0 and circle_rect_collision(cx, cy, r, rx, ry, rw, rh): return True
         return False
 
-def spawn_pipe(x: float) -> Pipe:
+def spawn_pipe(x: float, gap_h) -> Pipe:
     gy = random.randint(PIPE_GAP_MIN_Y, PIPE_GAP_MAX_Y)
-    return Pipe(x=float(x), gap_y=float(gy))
+    return Pipe(x=float(x), gap_y=float(gy), gap_h=gap_h)
 
-def update_pipes(pipes: List[Pipe], dt: float):
-    for p in pipes: p.update(dt)
+def update_pipes(pipes: List[Pipe], dt: float, scroll_speed: float):
+    for p in pipes: 
+        p.x -= scroll_speed * dt
     return [p for p in pipes if not p.offscreen()]
 
 def check_score_and_collision(pipes: List[Pipe], cx: int, cy: int):

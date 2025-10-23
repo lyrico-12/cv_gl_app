@@ -1,6 +1,6 @@
 import time
 from dataclasses import dataclass
-from config import LIFE_MAX, LIFE_GAUGE_RATE, LIFE_GAUGE_UNIT, LIFE_GAUGE_COOLDOWN
+from config import LIFE_MAX, LIFE_GAUGE_RATE, LIFE_GAUGE_UNIT, LIFE_GAUGE_COOLDOWN, DIFFICULTY_PRESETS
 
 @dataclass
 class LifeGauge:
@@ -10,6 +10,7 @@ class LifeGauge:
     """
     value: float = 0.0
     cooldown_until: float = 0.0
+    difficulty: str = "NORMAL"
 
     def update(self, eyes_closed: bool, dt: float, lives: int) -> int:
         """
@@ -17,12 +18,13 @@ class LifeGauge:
         """
         now = time.time()
         gained = 0
+        life_gauge_rate = DIFFICULTY_PRESETS[self.difficulty]["life_gauge_rate"]
 
         if now < self.cooldown_until:
             return 0
         
         if eyes_closed:
-            self.value += LIFE_GAUGE_RATE * dt
+            self.value += life_gauge_rate * dt
             while self.value >= LIFE_GAUGE_UNIT and lives + gained < LIFE_MAX:
                 self.value -= LIFE_GAUGE_UNIT
                 gained += 1

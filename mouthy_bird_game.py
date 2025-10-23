@@ -6,6 +6,7 @@ from obstacles import spawn_pipe, update_pipes, check_score_and_collision
 from bird_anim import BirdAnimator, overlay_image_alpha
 from life_gauge import LifeGauge
 import random
+from difficulty_menu import show_difficulty_menu
 
 def draw_life_gauge(vis, ratio: float, lives: int):
     x, y, w, h = 16, 100, 180, 14
@@ -18,20 +19,32 @@ def draw_life_gauge(vis, ratio: float, lives: int):
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 255, 180), 1, cv2.LINE_AA)
 
 def main():
+    difficulty = show_difficulty_menu()
+    params = DIFFICULTY_PRESETS[difficulty]
+    print(f"difficulty: {difficulty}")
+
+    GRAVITY = params["gravity"]
+    THRUST = params["thrust"]
+    spawn_interval_min = params["spawn_interval_min"]
+    spawn_interval_max = params["spawn_interval_max"]
+    SCROLL_SPEED = params["scroll_speed"]
+    PIPE_GAP_H = params["pipe_gap_h"]
+
+
     cap = cv2.VideoCapture(0)
     if not cap.isOpened():
         print("Camera open failed.")
         return
 
     detector = FaceInputDetector(draw_mesh=False)
-    bird = BirdAnimator()
-    life_gauge = LifeGauge()
+    bird = BirdAnimator(difficulty=difficulty)
+    life_gauge = LifeGauge(difficulty=difficulty)
 
     y = WIN_H * 0.5
     vy = 0.0
     pipes = []
     time_from_spawn = 0.0
-    next_spawn = random.uniform(1.8, 3.0)
+    next_spawn = random.uniform(spawn_interval_min, spawn_interval_max)
     score = 0
     lives = 3
     invincible_until = 0.0
@@ -64,16 +77,13 @@ def main():
 
                 # パイプ生成・更新
                 time_from_spawn += dt
-                # if time_from_spawn >= SPAWN_INTERVAL:
-                #     time_from_spawn = 0.0
-                #     pipes.append(spawn_pipe(WIN_W + 20))
 
                 while time_from_spawn >= next_spawn:
                     time_from_spawn -= next_spawn
-                    pipes.append(spawn_pipe(WIN_W + 20))
-                    next_spawn = random.uniform(1.8, 3.0)
+                    pipes.append(spawn_pipe(WIN_W + 20, PIPE_GAP_H))
+                    next_spawn = random.uniform(spawn_interval_min, spawn_interval_max)
 
-                pipes = update_pipes(pipes, dt)
+                pipes = update_pipes(pipes, dt, SCROLL_SPEED)
                 for p in pipes:
                     p.draw(vis)
 

@@ -27,3 +27,15 @@ LIFE_MAX          = 5           # ライフの上限
 LIFE_GAUGE_RATE   = 0.35      # 目を閉じている間のゲージ充填速度 [ゲージ/秒]
 LIFE_GAUGE_UNIT   = 1.0         # 満タン量（1.0で1回回復）
 LIFE_GAUGE_COOLDOWN = 0.0       # 回復後のクールタイム(秒)。不要なら0
+
+BIRD_IMG = {
+    "EASY": ["assets/bird1.png", "assets/bird2.png"],
+    "NORMAL": ["assets/bird3.png", "assets/bird4.png"],
+    "HARD": ["assets/bird5.png", "assets/bird6.png"],
+}
+
+DIFFICULTY_PRESETS = {
+    "EASY": {"gravity": 300.0,"thrust": 350.0,"scroll_speed": 180.0, "spawn_interval_min": 2.5, "spawn_interval_max": 3.5, "pipe_gap_h": 200, "life_gauge_rate": 0.5},
+    "NORMAL": {"gravity": 500.0,"thrust": 600.0,"scroll_speed": 220.0, "spawn_interval_min": 2.0, "spawn_interval_max": 3.0, "pipe_gap_h": 170, "life_gauge_rate": 0.35},
+    "HARD":{"gravity": 700.0,"thrust": 900.0,"scroll_speed": 260.0, "spawn_interval_min": 1.5, "spawn_interval_max": 2.5, "pipe_gap_h": 140, "life_gauge_rate": 0.2},
+}

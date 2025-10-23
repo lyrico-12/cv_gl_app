@@ -1,15 +1,18 @@
 import cv2
 import time
+from config import BIRD_IMG
 
 class BirdAnimator:
-    def __init__(self, size=(120, 120), switch_interval=0.5):
+    def __init__(self, difficulty="NORMAL", size=(120, 120), switch_interval=0.5):
         """
         size: (幅, 高さ)
         switch_interval: フレーム切り替えの間隔[秒]
         """
+        path1 = BIRD_IMG[difficulty][0]
+        path2 = BIRD_IMG[difficulty][1]
         self.frames = [
-            cv2.imread("bird1.png", cv2.IMREAD_UNCHANGED),
-            cv2.imread("bird2.png", cv2.IMREAD_UNCHANGED)
+            cv2.imread(path1, cv2.IMREAD_UNCHANGED),
+            cv2.imread(path2, cv2.IMREAD_UNCHANGED)
         ]
         if any(f is None for f in self.frames):
             raise FileNotFoundError("画像が見つかりません")
