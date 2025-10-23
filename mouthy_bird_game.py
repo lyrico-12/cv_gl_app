@@ -5,6 +5,7 @@ from detector_facemesh import FaceInputDetector
 from obstacles import spawn_pipe, update_pipes, check_score_and_collision
 from bird_anim import BirdAnimator, overlay_image_alpha
 from life_gauge import LifeGauge
+import random
 
 def draw_life_gauge(vis, ratio: float, lives: int):
     x, y, w, h = 16, 100, 180, 14
@@ -30,6 +31,7 @@ def main():
     vy = 0.0
     pipes = []
     time_from_spawn = 0.0
+    next_spawn = random.uniform(1.8, 3.0)
     score = 0
     lives = 3
     invincible_until = 0.0
@@ -62,9 +64,14 @@ def main():
 
                 # パイプ生成・更新
                 time_from_spawn += dt
-                if time_from_spawn >= SPAWN_INTERVAL:
-                    time_from_spawn = 0.0
+                # if time_from_spawn >= SPAWN_INTERVAL:
+                #     time_from_spawn = 0.0
+                #     pipes.append(spawn_pipe(WIN_W + 20))
+
+                while time_from_spawn >= next_spawn:
+                    time_from_spawn -= next_spawn
                     pipes.append(spawn_pipe(WIN_W + 20))
+                    next_spawn = random.uniform(1.8, 3.0)
 
                 pipes = update_pipes(pipes, dt)
                 for p in pipes:
