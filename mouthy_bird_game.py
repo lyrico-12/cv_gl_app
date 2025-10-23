@@ -12,9 +12,9 @@ def draw_life_gauge(vis, ratio: float, lives: int):
     cv2.rectangle(vis, (x, y), (x+w, y+h), (60, 60, 60), 2, cv2.LINE_AA)
     fill_w = int(w * max(0.0, min(1.0, ratio)))
     cv2.rectangle(vis, (x+1, y+1), (x+1+fill_w, y+h-1), (90, 230, 90), -1, cv2.LINE_AA)
-    cv2.putText(vis, f"Lives: {lives}", (x, y-8),
+    cv2.putText(vis, f"Lives: {lives}", (x, y-25),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.6, (255, 255, 255), 2, cv2.LINE_AA)
-    cv2.putText(vis, "Heal", (x+w+8, y+h-2),
+    cv2.putText(vis, "Heal", (x+w+8, y+h-19),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (180, 255, 180), 1, cv2.LINE_AA)
 
 def main():

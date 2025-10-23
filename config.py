@@ -21,9 +21,9 @@ HIT_KNOCKBACK_VY = -600
 
 # === Eyes / Life gauge ===
 EAR_CLOSE_THRESH = 0.38   # これ未満で「閉」
-EAR_OPEN_THRESH  = 0.42  # これ超で「開」  ※ヒステリシス
+EAR_OPEN_THRESH  = 0.43  # これ超で「開」  ※ヒステリシス
 
 LIFE_MAX          = 5           # ライフの上限
-LIFE_GAUGE_RATE   = 0.50        # 目を閉じている間のゲージ充填速度 [ゲージ/秒]
+LIFE_GAUGE_RATE   = 0.35      # 目を閉じている間のゲージ充填速度 [ゲージ/秒]
 LIFE_GAUGE_UNIT   = 1.0         # 満タン量（1.0で1回回復）
 LIFE_GAUGE_COOLDOWN = 0.0       # 回復後のクールタイム(秒)。不要なら0
