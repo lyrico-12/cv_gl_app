@@ -101,20 +101,11 @@ def main():
             else:
                 # ゲームオーバー表示
                 cv2.putText(vis, "GAME OVER", (WIN_W//2 - 150, WIN_H//2 - 20),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (40,40,255), 3, cv2.LINE_AA)
+                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (166, 85, 25), 3, cv2.LINE_AA)
                 cv2.putText(vis, "Press R to restart", (WIN_W//2 - 170, WIN_H//2 + 30),
                             cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2, cv2.LINE_AA)
                 for p in pipes:
                     p.draw(vis)
-
-            # if now < invincible_until and lives > 0:
-            #     flicker = int(now * 10) % 2 ==0
-            #     color = (0, 170, 255) if flicker else (180, 180, 180)
-            # else:
-            #     color = (0, 170, 255)
-
-            # # プレイヤー描画
-            # cv2.circle(vis, (PLAYER_X, int(y)), RADIUS, color, -1, cv2.LINE_AA)
 
             flicker_on = True
 
@@ -150,6 +141,7 @@ def main():
                 score = 0
                 lives = 3
                 invincible_until = 0.0
+                life_gauge = LifeGauge(difficulty=difficulty)
 
     finally:
         detector.close()
