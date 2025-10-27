@@ -67,7 +67,7 @@ class FaceInputDetector:
 
             ear_r = _ear_from_landmarks(pts, R_EYE)
             ear_l = _ear_from_landmarks(pts, L_EYE)
-            ear = min(ear_r, ear_l)
+            ear = (ear_r + ear_l) / 2.0
 
             if not self.eyes.is_closed and ear < EAR_CLOSE_THRESH:
                 self.eyes.is_closed = True

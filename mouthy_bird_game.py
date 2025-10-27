@@ -7,6 +7,7 @@ from bird_anim import BirdAnimator, overlay_image_alpha
 from life_gauge import LifeGauge
 import random
 from difficulty_menu import show_difficulty_menu
+from game_over_menu import show_game_over_menu
 
 def draw_life_gauge(vis, ratio: float, lives: int):
     x, y, w, h = 16, 100, 180, 14
@@ -99,13 +100,23 @@ def main():
                     lives = min(LIFE_MAX, lives + gained)
 
             else:
-                # ゲームオーバー表示
-                cv2.putText(vis, "GAME OVER", (WIN_W//2 - 150, WIN_H//2 - 20),
-                            cv2.FONT_HERSHEY_SIMPLEX, 1.2, (166, 85, 25), 3, cv2.LINE_AA)
-                cv2.putText(vis, "Press R to restart", (WIN_W//2 - 170, WIN_H//2 + 30),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.8, (255,255,255), 2, cv2.LINE_AA)
-                for p in pipes:
-                    p.draw(vis)
+                # When lives drop to zero, invoke the game-over menu
+                # The menu will return either 'restart' or 'quit'
+                choice = show_game_over_menu(score, difficulty, window_name="flappy bird advanced")
+                if choice == 'restart':
+                    # reset game state (same as pressing 'r')
+                    y = WIN_H * 0.5
+                    vy = 0.0
+                    pipes.clear()
+                    time_from_spawn = 0.0
+                    score = 0
+                    lives = 3
+                    invincible_until = 0.0
+                    life_gauge = LifeGauge(difficulty=difficulty)
+                    # continue main loop
+                else:
+                    # quit chosen: break out of the game loop and end
+                    break
 
             flicker_on = True
 
@@ -127,7 +138,7 @@ def main():
                 cv2.putText(vis, f"Invincible: {invincible_until - now:.1f}s",
                             (16, 132), cv2.FONT_HERSHEY_SIMPLEX, 0.8, (80, 220, 255), 2)
 
-            cv2.imshow("Mouthy Bird", vis)
+            cv2.imshow("flappy bird advanced", vis)
 
             # キー操作
             key = cv2.waitKey(1) & 0xFF
